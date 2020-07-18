@@ -8,8 +8,8 @@ class OperationCollection {
     // Returns a function that defines how the actual collection of operations is run
     // Note that the function returned and 'this' within the function are bound
     // to a Pipe instance
-    static operationCollectionFactory(methodName) {
-        throw new Error(`operationCollectionFactory not defined for ${this.constructor.name}`);
+    static operationCollectionFactory(methodName, interfaceName) {
+        throw new Error(`operationCollectionFactory not defined for ${this.name}`);
     }
 }
 
