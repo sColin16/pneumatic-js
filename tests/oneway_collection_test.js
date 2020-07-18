@@ -99,7 +99,7 @@ Deno.test("OnewayCollection transforms argument correctly", () => {
     assertArrayContains(endpoint.calls[0].args, expectedTransformedArgs);
 });
 
-Deno.test("OnewayCollection passes correct arguments through", () => {
+Deno.test("OnewayCollection passes correct arguments to endpoint", () => {
     const [a, b, pipe] = createOnewayTestObjects();
 
     // Don't need to mock any transform operations
