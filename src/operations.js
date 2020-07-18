@@ -12,14 +12,14 @@ class Operation {
     static getOperationName(methodName) {
         if (typeof this.PREFIX === 'undefined') {
             throw new Error(`PREFIX not set and getOperationName not overridden ` +
-                `for ${this.constructor.name}`);
+                `for ${this.name}`);
         }
 
         return this.PREFIX + this.upperCaseMethodName(methodName);
     }
 
     static getDefaultOperation() {
-        throw new Error(`getDefaultOperation is not defined for ${this.constructor.name}`);
+        throw new Error(`getDefaultOperation is not defined for ${this.name}`);
     }
 }
 
@@ -35,7 +35,6 @@ class ArgumentTransform extends Operation {
 
     static verifyOutput(inputArgs, transformedArgs, transformName, pipeReference) {
         this.verifyTransformedArgsIsIterator(transformedArgs, transformName, pipeReference);
-
         this.warnOnArgCountMismatch(inputArgs, transformedArgs, transformName, pipeReference);
     }
 
@@ -51,7 +50,7 @@ class ArgumentTransform extends Operation {
         if (transformedArgs.length != inputArgs.length) {
             console.warn(`Argument number mismatch. ${inputArgs.length} arguments were ` +
                 `passed to ${pipeReference.constructor.name}.${transformName}, but `+
-                `the function only returned ${transformedArgs.length} arguments`);
+                `the function returned ${transformedArgs.length} arguments`);
         }
     }
 }
