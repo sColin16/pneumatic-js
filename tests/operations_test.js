@@ -14,6 +14,11 @@ import {
 
 import { stub } from "https://deno.land/x/mock/stub.ts"
 
+class ValidPipeSubclass extends Pipe {
+    static FIRST_INTERFACE_NAME = 'first';
+    static SECOND_INTERFACE_NAME = 'second';
+}
+
 Deno.test("Upper Case Method Name", () => {
     const sampleMethodName = "myMethod";
 
@@ -75,7 +80,7 @@ Deno.test("ArgumentTransform defaultOperation multiple arguments", () => {
 Deno.test("ArgumentTransform verifyTransformedArgsIsIterator is iterator", () => {
     const transformedArgs = [1, 2, 3];
     const transformName = "myTransformFunction";
-    const pipeReference = new Pipe();
+    const pipeReference = new ValidPipeSubclass();
 
     try {
         ArgumentTransform.verifyTransformedArgsIsIterator(transformedArgs, transformName,
@@ -88,13 +93,13 @@ Deno.test("ArgumentTransform verifyTransformedArgsIsIterator is iterator", () =>
 Deno.test("ArgumentTransform verifyTransformedArgsIsIterator is not iterator", () => {
     const transformedArgs = 1;
     const transformName = "myTransformFunction";
-    const pipeReference = new Pipe();
+    const pipeReference = new ValidPipeSubclass();
 
     assertThrows(
         () => {ArgumentTransform.verifyTransformedArgsIsIterator(transformedArgs, transformName,
                 pipeReference)},
         Error,
-        "Pipe.myTransformFunction did not return an iterable"
+        "ValidPipeSubclass.myTransformFunction did not return an iterable"
     );
 });
 
@@ -102,7 +107,7 @@ Deno.test("ArgumentTransform warns on argument count mismatch", () => {
     const inputArgs = [1, 2, 3];
     const transformedArgs = [2, 3, 4, 5];
     const transformName = "myTransformFunction";
-    const pipeReference = new Pipe();
+    const pipeReference = new ValidPipeSubclass();
 
     const consoleWarnFake = stub(console, 'warn')
 
@@ -111,7 +116,7 @@ Deno.test("ArgumentTransform warns on argument count mismatch", () => {
 
     assertEquals(consoleWarnFake.calls.length, 1);
     assertStringContains(consoleWarnFake.calls[0].args[0], "3 arguments were passed to "+
-        "Pipe.myTransformFunction, but the function returned 4");
+        "ValidPipeSubclass.myTransformFunction, but the function returned 4");
 
     consoleWarnFake.restore();
 });
@@ -120,7 +125,7 @@ Deno.test("ArgumentTransform doesn't warn on matching argument count", () => {
     const inputArgs = [1, 2, 3];
     const transformedArgs = [2, 3, 4];
     const transformName = "myTransformFunction";
-    const pipeReference = new Pipe();
+    const pipeReference = new ValidPipeSubclass();
 
     const consoleWarnFake = stub(console, 'warn')
 
