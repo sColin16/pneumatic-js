@@ -71,7 +71,7 @@ class Pipe extends HandledObject {
         }
     }
 
-    verifySenderHandler(senderHandle, interfaceName) {
+    verifySenderHandle(senderHandle, interfaceName) {
         let oppositeInterfaceName = this.constructor.getOppositeInterfaceName(interfaceName);
 
         if (senderHandle != this.handles[oppositeInterfaceName]) {
@@ -82,7 +82,7 @@ class Pipe extends HandledObject {
     verifyFlow(senderHandle, interfaceName) {
         this.constructor.verifyInterfaceName(interfaceName);
         this.verifyHandlesDefined();
-        this.verifySenderHandler(senderHandle, interfaceName);
+        this.verifySenderHandle(senderHandle, interfaceName);
     }
 
     static verifyInterfaceName(interfaceName) {
