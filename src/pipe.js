@@ -45,10 +45,21 @@ class Pipe extends HandledObject {
     constructor(firstHandle, secondHandle) {
         super();
 
+        this.verifyInterfacesDefined();
+
         this.handles = {
             // Read the interface names from the static properties
             [this.constructor.FIRST_INTERFACE_NAME]:  firstHandle,
             [this.constructor.SECOND_INTERFACE_NAME]: secondHandle,
+        }
+    }
+
+    verifyInterfacesDefined() {
+        if (typeof this.constructor.FIRST_INTERFACE_NAME === 'undefined' ||
+                typeof this.constructor.SECOND_INTERFACE_NAME === 'undefined') {
+
+            throw new Error(`One or more of the interface names isn't defined for ` +
+                `${this.constructor.name}`);
         }
     }
 
