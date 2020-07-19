@@ -6,12 +6,7 @@ import {
     assert,
     assertEquals,
     assertThrows,
-    assertArrayContains,
-    assertStringContains,
 } from "https://deno.land/std/testing/asserts.ts";
-
-import { stub } from "https://deno.land/x/mock/stub.ts"
-import { spy } from "https://deno.land/x/mock/spy.ts"
 
 class ValidPipeSubclass extends Pipe {
     static FIRST_INTERFACE_NAME = 'first';

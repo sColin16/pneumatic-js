@@ -10,8 +10,7 @@ import {
     assertStringContains,
 } from "https://deno.land/std/testing/asserts.ts";
 
-import { stub } from "https://deno.land/x/mock/stub.ts"
-import { spy } from "https://deno.land/x/mock/spy.ts"
+import { stub, spy } from "https://deno.land/x/mock/mod.ts"
 
 // Helper objects for the tests
 class OnewayA {
