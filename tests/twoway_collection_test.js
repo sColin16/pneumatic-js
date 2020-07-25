@@ -22,11 +22,11 @@ class TwowayA {
 class TwowayB {}
 
 class TwowayTestPipe extends Pipe {
-    static FIRST_INTERFACE_NAME = 'TwowayA';
-    static SECOND_INTERFACE_NAME = 'TwowayB';
+    static FIRST_INTERFACE = TwowayA;
+    static SECOND_INTERFACE = TwowayB;
 }
 
-TwowayTestPipe.addInterfaceMethod('requestFromA', 'TwowayA', TwowayCollection);
+TwowayTestPipe.addInterfaceMethod(TwowayA, 'requestFromA', TwowayCollection);
 
 function createTwowayTestObjects() {
     class TwowayPipe extends TwowayTestPipe { }

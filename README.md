@@ -31,7 +31,7 @@ class Merchant {
 
 class Customer {
     acceptCoupon(merchant, coupon) {
-        console.log(`Got the coupon ${coupon} from ${merchant}`);
+        console.log(coupon);
     }
 }
 ```
@@ -47,16 +47,16 @@ communicate through
 import { Pipe, OnewayCollection, TwowayCollection } from 'https://denopkg.com/sColin16/pneumatic-js/index.js'
 
 class MerchantCustomerPipe extends Pipe {
-    static FIRST_INTERFACE_NAME = 'merchant';
-    static SECOND_INTERFACE_NAME = 'customer';
+    static FIRST_INTERFACE = Merchant;
+    static SECOND_INTERFACE = Customer;
 }
 
-MerchantCustomerPipe.addInterfaceMethod('acceptCoupton', 'customer', OnewayCollection);
-MerchantCustomerPipe.addInterfaceMethod('getPrice', 'merchant', TwowayCollection);
+MerchantCustomerPipe.addInterfaceMethod(Customer, 'acceptCoupton', OnewayCollection);
+MerchantCustomerPipe.addInterfaceMethod(Merchant, 'getPrice', TwowayCollection);
 ```
 
 Where `OnewayCollection` allows applying transformations when a message goes
-only one way (void functions), as is true of `acceptCoupt`, and `TwowayCollection`
+only one way (void functions), as is true of `acceptCoupon`, and `TwowayCollection`
 allows applying transformations when a message goes both ways (a non-void
 function) as in `getPrice`.
 

@@ -15,8 +15,8 @@ import {
 import { stub } from "https://deno.land/x/mock/stub.ts"
 
 class ValidPipeSubclass extends Pipe {
-    static FIRST_INTERFACE_NAME = 'first';
-    static SECOND_INTERFACE_NAME = 'second';
+    static FIRST_INTERFACE = 'first';
+    static SECOND_INTERFACE = 'second';
 }
 
 Deno.test("Upper Case Method Name", () => {

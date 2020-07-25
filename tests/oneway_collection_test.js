@@ -20,11 +20,11 @@ class OnewayA {
 class OnewayB {}
 
 class OnewayTestPipe extends Pipe {
-    static FIRST_INTERFACE_NAME = 'OnewayA';
-    static SECOND_INTERFACE_NAME = 'OnewayB';
+    static FIRST_INTERFACE = OnewayA;
+    static SECOND_INTERFACE = OnewayB;
 }
 
-OnewayTestPipe.addInterfaceMethod('sendToA', 'OnewayA', OnewayCollection);
+OnewayTestPipe.addInterfaceMethod(OnewayA, 'sendToA', OnewayCollection);
 
 function createOnewayTestObjects() {
     class OnewayPipe extends OnewayTestPipe { }

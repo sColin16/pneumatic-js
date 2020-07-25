@@ -7,27 +7,27 @@ class HandledObject {
 
 // Note: this class isn't instantiated
 class PipeBuilder {
-    static addInterfaceMethod(className, methodName, interfaceName, operationCollection) {
-        className.verifyInterfaceName(interfaceName);
+    static addInterfaceMethod(pipeClass, interfaceClass, methodName, operationCollection) {
+        pipeClass.verifyInterfaceClass(interfaceClass);
 
-        className.prototype[methodName] =
-            this.interfaceMethodFactory(methodName, interfaceName,
+        pipeClass.prototype[methodName] =
+            this.interfaceMethodFactory(interfaceClass, methodName,
                 operationCollection);        
 
         for (const [name, operation] of Object.entries(operationCollection.validOperations)) {
             let operationName = operation.getOperationName(methodName);
 
-            className.prototype[operationName] = operation.getDefaultOperation();
+            pipeClass.prototype[operationName] = operation.getDefaultOperation();
         }
     }
 
-    static interfaceMethodFactory(methodName, interfaceName, operationCollection) {
+    static interfaceMethodFactory(interfaceClass, methodName, operationCollection) {
         let operationCollectionFunction =
             operationCollection.operationCollectionFactory(methodName,
-                interfaceName);
+                interfaceClass.name);
 
         function finalOperationCollection(senderHandle, ...args) {
-            this.verifyFlow(senderHandle, interfaceName);
+            this.verifyFlow(senderHandle, interfaceClass);
 
             return operationCollectionFunction.bind(this)(senderHandle, ...args);
         }
@@ -45,23 +45,15 @@ class Pipe extends HandledObject {
     constructor(firstHandle, secondHandle) {
         super();
 
-        this.verifyInterfacesDefined();
+        this.constructor.verifyInterfacesDefined();
 
         this.handles = {
             // Read the interface names from the static properties
-            [this.constructor.FIRST_INTERFACE_NAME]:  firstHandle,
-            [this.constructor.SECOND_INTERFACE_NAME]: secondHandle,
+            [this.constructor.FIRST_INTERFACE.name]:  firstHandle,
+            [this.constructor.SECOND_INTERFACE.name]: secondHandle,
         }
     }
 
-    verifyInterfacesDefined() {
-        if (typeof this.constructor.FIRST_INTERFACE_NAME === 'undefined' ||
-                typeof this.constructor.SECOND_INTERFACE_NAME === 'undefined') {
-
-            throw new Error(`One or more of the interface names isn't defined for ` +
-                `${this.constructor.name}`);
-        }
-    }
 
     verifyHandlesDefined() {
         for (const [key, value] of Object.entries(this.handles)) {
@@ -71,42 +63,53 @@ class Pipe extends HandledObject {
         }
     }
 
-    verifySenderHandle(senderHandle, interfaceName) {
-        let oppositeInterfaceName = this.constructor.getOppositeInterfaceName(interfaceName);
+    verifySenderHandle(senderHandle, interfaceClass) {
+        let oppositeInterface = this.constructor.getOppositeInterface(interfaceClass);
 
-        if (senderHandle != this.handles[oppositeInterfaceName]) {
-            throw new Error("Sender handle does not match the sender for this pipe and method");
+        if (senderHandle != this.handles[oppositeInterface.name]) {
+            throw new Error(`Invalid sender. ${senderHandle} cannot send messages through ` +
+                `this pipe to the interface ${interfaceClass.name}`);
         }
     }
 
-    verifyFlow(senderHandle, interfaceName) {
-        this.constructor.verifyInterfaceName(interfaceName);
+    verifyFlow(senderHandle, interfaceClass) {
         this.verifyHandlesDefined();
-        this.verifySenderHandle(senderHandle, interfaceName);
+        this.verifySenderHandle(senderHandle, interfaceClass);
     }
 
-    static verifyInterfaceName(interfaceName) {
-        if (interfaceName != this.FIRST_INTERFACE_NAME &&
-            interfaceName != this.SECOND_INTERFACE_NAME) {
+    static verifyInterfacesDefined() {
+        if (typeof this.FIRST_INTERFACE === 'undefined' ||
+                typeof this.SECOND_INTERFACE === 'undefined') {
 
-            throw new Error(`${interfaceName} is not a valid interface for ${this.name}`)
+            throw new Error(`One or more of the interfaces are not defined for ` +
+                `${this.name}`);
         }
     }
 
-    static getOppositeInterfaceName(interfaceName) {
-        this.verifyInterfaceName(interfaceName);
+    static verifyInterfaceClass(interfaceClass) {
+        this.verifyInterfacesDefined();
 
-        if (interfaceName == this.FIRST_INTERFACE_NAME) {
-            return this.SECOND_INTERFACE_NAME;
-        }
+        if (interfaceClass != this.FIRST_INTERFACE &&
+            interfaceClass != this.SECOND_INTERFACE) {
 
-        if (interfaceName === this.SECOND_INTERFACE_NAME) {
-            return this.FIRST_INTERFACE_NAME;
+            throw new Error(`${interfaceClass.name} is not a valid interface for ${this.name}`)
         }
     }
 
-    static addInterfaceMethod(methodName, interfaceName, operationCollection) {
-        this.builder.addInterfaceMethod(this, methodName, interfaceName, operationCollection);
+    static getOppositeInterface(interfaceClass) {
+        this.verifyInterfaceClass(interfaceClass);
+
+        if (interfaceClass == this.FIRST_INTERFACE) {
+            return this.SECOND_INTERFACE;
+        }
+
+        if (interfaceClass === this.SECOND_INTERFACE) {
+            return this.FIRST_INTERFACE;
+        }
+    }
+
+    static addInterfaceMethod(interfaceClass, methodName, operationCollection) {
+        this.builder.addInterfaceMethod(this, interfaceClass, methodName, operationCollection);
     }
 }
 

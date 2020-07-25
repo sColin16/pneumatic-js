@@ -11,9 +11,14 @@ import {
     assertThrows,
 } from "https://deno.land/std/testing/asserts.ts";
 
+class First {};
+class Second {};
+
+class OtherClass {};
+
 class ValidPipeSubclass extends Pipe {
-    static FIRST_INTERFACE_NAME = 'first';
-    static SECOND_INTERFACE_NAME = 'second';
+    static FIRST_INTERFACE = First;
+    static SECOND_INTERFACE = Second;
 }
 
 import { stub, returnsThis } from "https://deno.land/x/mock/mod.ts"
@@ -54,11 +59,25 @@ class TestCollection extends OperationCollection {
     }
 }
 
-Deno.test("PipeBuilder addInterfaceMethod throws error with invalid interface name" , () => {
+Deno.test("Pipe Builder addInterfaceMethod throws error with undefined interfaces", () => {
+    class EmptyCollection extends OperationCollection {};
+    class InvalidPipeSubclass extends Pipe {
+        static FIRST_INTERFACE = First;
+    }
+
     assertThrows(
-        () => PipeBuilder.addInterfaceMethod(ValidPipeSubclass, 'myMethod', 'notfirst'),
+        () => PipeBuilder.addInterfaceMethod(InvalidPipeSubclass, First, 'myMethod',
+            EmptyCollection),
         Error,
-        "notfirst is not a valid interface for ValidPipeSubclass"
+        "One or more of the interfaces are not defined for InvalidPipeSubclass"
+    )
+});
+
+Deno.test("PipeBuilder addInterfaceMethod throws error with invalid interface class" , () => {
+    assertThrows(
+        () => PipeBuilder.addInterfaceMethod(ValidPipeSubclass, OtherClass, 'myMethod'),
+        Error,
+        "OtherClass is not a valid interface for ValidPipeSubclass"
     )
 });
 
@@ -69,7 +88,7 @@ Deno.test("PipeBuilder addInterfaceMethod binds function to methodName", () => {
     const interfaceMethod = () => {};
     const interfaceMethodFactory = stub(PipeBuilder, 'interfaceMethodFactory', [interfaceMethod]);
 
-    PipeBuilder.addInterfaceMethod(TestPipe, 'myMethod', 'first', EmptyCollection);    
+    PipeBuilder.addInterfaceMethod(TestPipe, First, 'myMethod', EmptyCollection);    
 
     assertEquals(TestPipe.prototype.myMethod, interfaceMethod);
 
@@ -82,7 +101,7 @@ Deno.test("PipeBuilder addInterfaceMethod binds all operation methods", () => {
     const interfaceMethod = () => {};
     const interfaceMethodFactory = stub(PipeBuilder, 'interfaceMethodFactory', [interfaceMethod]);
 
-    PipeBuilder.addInterfaceMethod(TestPipe, 'Method', 'first', TestCollection);    
+    PipeBuilder.addInterfaceMethod(TestPipe, First, 'Method', TestCollection);    
 
     assertEquals(TestPipe.prototype.aMethod, a);
     assertEquals(TestPipe.prototype.bMethod, b);
@@ -96,7 +115,7 @@ Deno.test("PipeBuilder interfaceMethodFactory function throws error on undefined
 
     const operationCollectionFactory = stub(TestCollection, 'operationCollectionFactory');
 
-    const outputFunction = PipeBuilder.interfaceMethodFactory("myMethod", "first",
+    const outputFunction = PipeBuilder.interfaceMethodFactory(First, "myMethod",
         TestCollection);
 
     TestPipe.prototype.operationCollectionFunction = outputFunction;
@@ -106,7 +125,7 @@ Deno.test("PipeBuilder interfaceMethodFactory function throws error on undefined
     assertThrows (
         () => testPipe.operationCollectionFunction('secondObject'),
         Error,
-        "The handle for interface second is not defined"
+        "The handle for interface Second is not defined"
     )
 
     operationCollectionFactory.restore();
@@ -117,7 +136,7 @@ Deno.test("PipeBuilder interfaceMethodFactory function throws error on invalid s
 
     const operationCollectionFactory = stub(TestCollection, 'operationCollectionFactory');
 
-    const outputFunction = PipeBuilder.interfaceMethodFactory("myMethod", "first",
+    const outputFunction = PipeBuilder.interfaceMethodFactory(First, "myMethod",
         TestCollection);
 
     TestPipe.prototype.operationCollectionFunction = outputFunction;
@@ -127,7 +146,8 @@ Deno.test("PipeBuilder interfaceMethodFactory function throws error on invalid s
     assertThrows (
         () => testPipe.operationCollectionFunction('invalidObject'),
         Error,
-        "Sender handle does not match"
+        "Invalid sender. invalidObject cannot send messages through this pipe to the interface "+
+            "First"
     )
 
     operationCollectionFactory.restore();
@@ -141,7 +161,7 @@ Deno.test("PipeBuilder interfaceMethodFactory calls operation collection correct
     const operationCollectionFactory = stub(TestCollection, 'operationCollectionFactory',
         [operationCollectionFunction]);
 
-    const outputFunction = PipeBuilder.interfaceMethodFactory("myMethod", "first",
+    const outputFunction = PipeBuilder.interfaceMethodFactory(First, "myMethod", 
         TestCollection);
 
     TestPipe.prototype.operationCollectionFunction = outputFunction;
@@ -166,7 +186,7 @@ Deno.test("PipeBuilder interfaceMethodFactory names function correctly", () => {
 
     const operationCollectionFactory = stub(TestCollection, 'operationCollectionFactory');
 
-    const outputFunction = PipeBuilder.interfaceMethodFactory("myMethod", "first",
+    const outputFunction = PipeBuilder.interfaceMethodFactory(First, "myMethod",
         TestCollection);
     
     assertEquals(outputFunction.name, "myMethod");

@@ -8,9 +8,13 @@ import {
     assertThrows,
 } from "https://deno.land/std/testing/asserts.ts";
 
+class First {};
+class Second {};
+class OtherClass {};
+
 class ValidPipeSubclass extends Pipe {
-    static FIRST_INTERFACE_NAME = 'first';
-    static SECOND_INTERFACE_NAME = 'second';
+    static FIRST_INTERFACE = First;
+    static SECOND_INTERFACE = Second;
 }
 
 function assertNoThrow(fn) {
@@ -29,7 +33,7 @@ Deno.test("Pipe throws error when interface names undefined", () => {
     assertThrows(
         () => {new InvalidPipeSubclass()},
         Error,
-        "One or more of the interface names isn't defined for InvalidPipeSubclass"
+        "One or more of the interfaces are not defined for InvalidPipeSubclass"
     )
 });
 
@@ -43,7 +47,7 @@ Deno.test("Pipe verifyHandlesDefined throws error when interface name undefined"
     assertThrows(
         () => {missingHandlePipe.verifyHandlesDefined()},
         Error,
-        "The handle for interface second is not defined"
+        "The handle for interface Second is not defined"
     );
 });
 
@@ -57,34 +61,35 @@ Deno.test("Pipe verifySenderHandle throws error wtih invalid sender", () => {
     const pipe = new ValidPipeSubclass('firstObject', 'secondObject');
 
     assertThrows(
-        () => {pipe.verifySenderHandle('firstObject', 'first')},
+        () => {pipe.verifySenderHandle('firstObject', First)},
         Error,
-        "Sender handle does not match"
+        "Invalid sender. firstObject cannot send messages through this pipe to the interface "+
+            "First"
     );
 });
 
 Deno.test("Pipe verifySenderHandle doesn't throw error with valid sender", () => {
     const pipe = new ValidPipeSubclass('firstObject', 'secondObject');
 
-    assertNoThrow(() => pipe.verifySenderHandle('secondObject', 'first'))
+    assertNoThrow(() => pipe.verifySenderHandle('secondObject', First))
 });
 
-Deno.test("Pipe verifyInterfaceName throws error with invalid interface name", () => {
+Deno.test("Pipe verifyInterfaceClass throws error with invalid interface name", () => {
     assertThrows(
-        () => ValidPipeSubclass.verifyInterfaceName('notfirst'),
+        () => ValidPipeSubclass.verifyInterfaceClass(OtherClass),
         Error,
-        'notfirst is not a valid interface for ValidPipeSubclass'
+        'OtherClass is not a valid interface for ValidPipeSubclass'
     );
 });
 
-Deno.test("Pipe verifyInterfaceName doesn't throw error with valid interface name", () => {
-    assertNoThrow(() => ValidPipeSubclass.verifyInterfaceName('second'));
+Deno.test("Pipe verifyInterfaceType doesn't throw error with valid interface name", () => {
+    assertNoThrow(() => ValidPipeSubclass.verifyInterfaceClass(Second));
 });
 
 Deno.test("Pipe getOppositeInterfaceName first -> second", () => {
-    assertEquals(ValidPipeSubclass.getOppositeInterfaceName('first'), 'second');
+    assertEquals(ValidPipeSubclass.getOppositeInterface(First), Second);
 });
 
 Deno.test("Pipe getOppositeInterfaceName second -> first", () => {
-    assertEquals(ValidPipeSubclass.getOppositeInterfaceName('second'), 'first');
+    assertEquals(ValidPipeSubclass.getOppositeInterface(Second), First);
 });
