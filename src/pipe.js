@@ -1,6 +1,6 @@
 // The base class for objects that can use the append methods for the pipes
 class HandledObject {
-    getHandle(senderHandle) {
+    getHandle(senderHandle, ...args) {
         return this;
     }
 }
@@ -39,8 +39,22 @@ class PipeBuilder {
     }
 }
 
+// Responsible for connecting pipes to create a pipeline
+class PipeWelder {
+    // Returns true if the object implements the getHandle() method
+    static isHandledObject(object){
+        return 'getHandle' in object;
+    }
+
+    // Returns true if the object is handled, and implements the appendToPipeline() method
+    static isPipelineableObject(object) {
+        return this.isHandledObject(object) && 'appendToPipeline' in object;
+    }
+}
+
 class Pipe extends HandledObject {
     static builder = PipeBuilder; // Class that dynamically adds methods and other properties
+    static welder = PipeWelder;
 
     constructor(firstHandle, secondHandle) {
         super();
@@ -72,6 +86,32 @@ class Pipe extends HandledObject {
         }
     }
 
+    getHandle(senderHandle, interfaceClass) {
+        let directHandle = this.getDirectHandle(interfaceClass);
+
+        if (typeof directHandle === 'undefined') {
+            return this;
+        } else if (this.constructor.welder.isPipelineableObject(directHandle)) {
+            return directHandle.getHandle(senderHandle, interfaceClass);
+        } else {
+            throw new Error(`Cannot get handle for the pipeline. Pipeline is already fully connected`);
+        }
+    }
+
+    // Returns the object stored in the handle for the given interface class
+    getDirectHandle(interfaceClass) {
+        return this.handles[interfaceClass.name];
+    }
+
+    // Links a given object to the handle for the provided interface class
+    setDirectHandle(interfaceClass, object) {
+        this.handles[interfaceClass.name] = object;
+    }
+
+    appendToPipeline() {
+        // TODO
+    }
+    
     verifyFlow(senderHandle, interfaceClass) {
         this.verifyHandlesDefined();
         this.verifySenderHandle(senderHandle, interfaceClass);
@@ -113,4 +153,4 @@ class Pipe extends HandledObject {
     }
 }
 
-export { HandledObject, PipeBuilder, Pipe }
+export { HandledObject, PipeBuilder, PipeWelder, Pipe }

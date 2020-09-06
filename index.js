@@ -4,4 +4,4 @@ export { Operation, ArgumentTransform, OnewayTransform, OnewayFilter,
 export { OperationCollection, OnewayCollection, TwowayCollection } from
     './src/operation-collections.js'
 
-export { HandledObject, PipeBuilder, Pipe } from './src/pipe.js'
+export { HandledObject, PipeBuilder, PipeWelder, Pipe } from './src/pipe.js'

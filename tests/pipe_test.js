@@ -25,6 +25,21 @@ function assertNoThrow(fn) {
     }
 }
 
+function createPipelineTestObjects() {
+    const pipeA = new ValidPipeSubclass();
+    const pipeB = new ValidPipeSubclass();
+    const pipeC = new ValidPipeSubclass();
+
+    pipeA.setDirectHandle(Second, pipeB);
+
+    pipeB.setDirectHandle(First, pipeA);
+    pipeB.setDirectHandle(Second, pipeC);
+
+    pipeC.setDirectHandle(First, pipeB);
+
+    return [pipeA, pipeB, pipeC];
+}
+
 Deno.test("Pipe throws error when interface names undefined", () => {
     class InvalidPipeSubclass extends Pipe {
         static FIRST_INTERFACE_NAME = 'first';
@@ -92,4 +107,46 @@ Deno.test("Pipe getOppositeInterfaceName first -> second", () => {
 
 Deno.test("Pipe getOppositeInterfaceName second -> first", () => {
     assertEquals(ValidPipeSubclass.getOppositeInterface(Second), First);
+});
+
+Deno.test("Pipe getDirectHandle", () => {
+    const pipe = new ValidPipeSubclass('firstObject', 'secondObject');
+
+    assertEquals(pipe.getDirectHandle(First), 'firstObject');
+    assertEquals(pipe.getDirectHandle(Second), 'secondObject');
+});
+
+Deno.test("Pipe setDirectHandle", () => {
+    const pipe = new ValidPipeSubclass('firstObject', 'secondObject');
+
+    pipe.setDirectHandle(First, 'newFirstObject');
+    pipe.setDirectHandle(Second, 'newSecondObject');
+
+    assertEquals(pipe.getDirectHandle(First), 'newFirstObject');
+    assertEquals(pipe.getDirectHandle(Second), 'newSecondObject');
+});
+
+Deno.test("Pipe getHandle returns self", () => {
+    const [pipeA, pipeB, pipeC] = createPipelineTestObjects();
+
+    assertEquals(pipeA.getHandle(null, First), pipeA);
+});
+
+Deno.test("Pipe getHandle traverses structure", () => {
+    const [pipeA, pipeB, pipeC] = createPipelineTestObjects();
+
+    assertEquals(pipeC.getHandle(null, First), pipeA);
+});
+
+Deno.test("Pipe getHandle throws error on fully-connected pipeline", () => {
+    const [pipeA, pipeB, pipeC] = createPipelineTestObjects();
+    const nonpipelinableObject = new Second();
+
+    pipeC.setDirectHandle(Second, nonpipelinableObject);
+
+    assertThrows(
+        () => {pipeA.getHandle(null, Second)},
+        Error,
+        'Cannot get handle for the pipeline. Pipeline is already fully connected'
+    )
 });
