@@ -41,6 +41,40 @@ class PipeBuilder {
 
 // Responsible for connecting pipes to create a pipeline
 class PipeWelder {
+    static appendToPipeline(pipe, senderHandle, interfaceClass, object) {
+        const pipelineEnd = pipe.getHandle(senderHandle, interfaceClass);
+
+        if (this.isHandledObject(object)) {
+            this.weldHandledObject(pipelineEnd, senderHandle, interfaceClass, object);
+        
+        } else {
+            this.weldObject(pipelineEnd, interfaceClass, object);
+        }
+    }
+
+    static weldHandledObject(pipelineEnd, senderHandle, interfaceClass, handledObject) {
+        const linkedObject = handledObject.getHandle(senderHandle, interfaceClass);
+
+        if (this.isPipelineableObject(linkedObject)) {
+            this.weldPipes(pipelineEnd, senderHandle, interfaceClass, linkedObject);
+        } else {
+            this.weldObject(pipelineEnd, interfaceClass, linkedObject);
+        }
+    }
+
+    static weldPipes(pipelineEnd, senderHandle, interfaceClass, otherPipe) {
+        const oppositeInterface = pipelineEnd.constructor.getOppositeInterface(interfaceClass);
+
+        const otherPipelineEnd = otherPipe.getHandle(senderHandle, oppositeInterface);
+
+        this.weldObject(pipelineEnd, interfaceClass, otherPipelineEnd);
+        this.weldObject(otherPipelineEnd, oppositeInterface, pipelineEnd);
+    }
+
+    static weldObject(pipelineEnd, interfaceClass, object) {
+        pipelineEnd.setDirectHandle(interfaceClass, object);
+    }
+
     // Returns true if the object implements the getHandle() method
     static isHandledObject(object){
         return 'getHandle' in object;
@@ -54,7 +88,7 @@ class PipeWelder {
 
 class Pipe extends HandledObject {
     static builder = PipeBuilder; // Class that dynamically adds methods and other properties
-    static welder = PipeWelder;
+    static welder = PipeWelder;   // Class that connects pipes to form complete pipelines
 
     constructor(firstHandle, secondHandle) {
         super();
@@ -67,7 +101,6 @@ class Pipe extends HandledObject {
             [this.constructor.SECOND_INTERFACE.name]: secondHandle,
         }
     }
-
 
     verifyHandlesDefined() {
         for (const [key, value] of Object.entries(this.handles)) {
@@ -109,9 +142,9 @@ class Pipe extends HandledObject {
     }
 
     appendToPipeline() {
-        // TODO
+        this.constructor.welder.addToPipeline(this, senderHandle, interfaceClass, object);
     }
-    
+
     verifyFlow(senderHandle, interfaceClass) {
         this.verifyHandlesDefined();
         this.verifySenderHandle(senderHandle, interfaceClass);

@@ -8,8 +8,8 @@ import {
     assertThrows,
 } from "https://deno.land/std/testing/asserts.ts";
 
-class First {};
-class Second {};
+export class First {};
+export class Second {};
 class OtherClass {};
 
 class ValidPipeSubclass extends Pipe {
@@ -25,7 +25,7 @@ function assertNoThrow(fn) {
     }
 }
 
-function createPipelineTestObjects() {
+export function createPipelineTestObjects() {
     const pipeA = new ValidPipeSubclass();
     const pipeB = new ValidPipeSubclass();
     const pipeC = new ValidPipeSubclass();
