@@ -21,8 +21,8 @@ class ValidPipeSubclass extends Pipe {
     static SECOND_INTERFACE = Second;
 }
 
-class DynamicHandledObject extends HandledObject {
-    getHandle(senderHandle, ...args) {
+class DynamicallyHandledObject extends HandledObject {
+    getHandle(senderHandle) {
         const dynamicPipe = new ValidPipeSubclass();
 
         dynamicPipe.setDirectHandle(Second, this);
@@ -68,94 +68,71 @@ Deno.test("PipeWelder weldObject", () => {
 
 Deno.test("PipeWelder weldPipes welds single pipe", () => {
     const pipelineEnd = new ValidPipeSubclass();
-    const weldedPipe = new ValidPipeSubclass();
+    const targetPipe = new ValidPipeSubclass();
 
-    PipeWelder.weldPipes(pipelineEnd, pipelineEnd, First, weldedPipe);
+    PipeWelder.weldPipes(pipelineEnd, First, targetPipe);
 
-    assertEquals(pipelineEnd.getDirectHandle(First), weldedPipe);
-    assertEquals(weldedPipe.getDirectHandle(Second), pipelineEnd);
+    assertEquals(pipelineEnd.getDirectHandle(First), targetPipe);
+    assertEquals(targetPipe.getDirectHandle(Second), pipelineEnd);
 });
 
-Deno.test("PipeWelder weldPipes welds pipeline", () => {
+Deno.test("PipeWelder weldHandledObject welds dynamically handled object", () => {
     const pipelineEnd = new ValidPipeSubclass();
+    const targetObject = new DynamicallyHandledObject();
 
-    const [pipeA, pipeB, pipeC] = createPipelineTestObjects();
+    PipeWelder.weldHandledObject(pipelineEnd, Second, targetObject);
 
-    PipeWelder.weldPipes(pipelineEnd, pipelineEnd, Second, pipeC);
-
-    assertEquals(pipelineEnd.getDirectHandle(Second), pipeA);
-    assertEquals(pipeA.getDirectHandle(First), pipelineEnd);
-});
-
-Deno.test("PipeWelder weldHandledObject welds pipeline", () => {
-    const pipelineEnd = new ValidPipeSubclass();
-
-    const [pipeA, pipeB, pipeC] = createPipelineTestObjects();
-
-    PipeWelder.weldHandledObject(pipelineEnd, pipelineEnd, Second, pipeC);
-
-    assertEquals(pipelineEnd.getDirectHandle(Second), pipeA);
-    assertEquals(pipeA.getDirectHandle(First), pipelineEnd);
+    assertEquals(pipelineEnd.getDirectHandle(Second), targetObject.link);
+    assertEquals(targetObject.link.getDirectHandle(First), pipelineEnd);
 });
 
 Deno.test("PipeWelder weldHandledObject welds object", () => {
     const pipelineEnd = new ValidPipeSubclass();
-    
     const handledObject = new HandledObject();
 
-    PipeWelder.weldHandledObject(pipelineEnd, pipelineEnd, Second, handledObject);
+    PipeWelder.weldHandledObject(pipelineEnd, Second, handledObject);
 
     assertEquals(pipelineEnd.getDirectHandle(Second), handledObject);
 })
-
-Deno.test("PipeWelder weldHandledObject welds dynamic handled object", () => {
-    const pipelineEnd = new ValidPipeSubclass();
-    const weldedObject = new DynamicHandledObject();
-
-    PipeWelder.weldHandledObject(pipelineEnd, pipelineEnd, Second, weldedObject);
-
-    assertEquals(pipelineEnd.getDirectHandle(Second), weldedObject.link);
-    assertEquals(weldedObject.link.getDirectHandle(First), pipelineEnd);
-});
 
 Deno.test("PipeWelder appendToPipeline welds pipeline", () => {
     const [pipeA, pipeB, pipeC] = createPipelineTestObjects();
     const [pipeD, pipeE, pipeF] = createPipelineTestObjects();
 
-    PipeWelder.appendToPipeline(pipeA, pipeA, Second, pipeF);
+    PipeWelder.appendToPipeline(pipeA, Second, pipeF);
 
     assertEquals(pipeC.getDirectHandle(Second), pipeD);
     assertEquals(pipeD.getDirectHandle(First), pipeC);
 });
 
-Deno.test("PipeWelder appendToPipeline welds dynamic handled object", () => {
+Deno.test("PipeWelder appendToPipeline welds dynamically handled object", () => {
     const [pipeA, pipeB, pipeC] = createPipelineTestObjects();
-    const weldedObject = new DynamicHandledObject();
+    const targetObject = new DynamicallyHandledObject();
 
-    PipeWelder.appendToPipeline(pipeA, pipeA, Second, weldedObject);
+    PipeWelder.appendToPipeline(pipeA, Second, targetObject);
 
-    assertEquals(pipeC.getDirectHandle(Second), weldedObject.link);
-    assertEquals(weldedObject.link.getDirectHandle(First), pipeC);
+    assertEquals(pipeC.getDirectHandle(Second), targetObject.link);
+    assertEquals(targetObject.link.getDirectHandle(First), pipeC);
 });
 
 Deno.test("PipeWelder appendToPipeline welds object", () => {
     const [pipeA, pipeB, pipeC] = createPipelineTestObjects();
-    const weldedObject = new HandledObject();
+    const targetObject = new HandledObject();
 
-    PipeWelder.appendToPipeline(pipeA, pipeA, Second, weldedObject);
+    PipeWelder.appendToPipeline(pipeA, Second, targetObject);
 
-    assertEquals(pipeC.getDirectHandle(Second), weldedObject);
+    assertEquals(pipeC.getDirectHandle(Second), targetObject);
 });
 
 Deno.test("PipeWelder appendToPipeline throws error on fully-conected pipeline", () => {
     const [pipeA, pipeB, pipeC] = createPipelineTestObjects();
     const weldedObject = new HandledObject();
 
-    PipeWelder.appendToPipeline(pipeA, pipeA, Second, weldedObject);
+    PipeWelder.appendToPipeline(pipeA, Second, weldedObject);
 
     assertThrows(
-        () => PipeWelder.appendToPipeline(pipeA, pipeA, Second, weldedObject),
+        () => PipeWelder.appendToPipeline(pipeA, Second, weldedObject),
         Error,
-        'Cannot get handle for the pipeline. Pipeline is already fully connected'
+        'The Second end of the pipeline is already welded'
     )
 });

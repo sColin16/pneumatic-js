@@ -126,27 +126,27 @@ Deno.test("Pipe setDirectHandle", () => {
     assertEquals(pipe.getDirectHandle(Second), 'newSecondObject');
 });
 
-Deno.test("Pipe getHandle returns self", () => {
+Deno.test("Pipe getPipelineEnd returns self when at end", () => {
     const [pipeA, pipeB, pipeC] = createPipelineTestObjects();
 
-    assertEquals(pipeA.getHandle(null, First), pipeA);
+    assertEquals(pipeA.getPipelineEnd(First), pipeA);
 });
 
-Deno.test("Pipe getHandle traverses structure", () => {
+Deno.test("Pipe getPipelineEnd finds opposite end", () => {
     const [pipeA, pipeB, pipeC] = createPipelineTestObjects();
 
-    assertEquals(pipeC.getHandle(null, First), pipeA);
+    assertEquals(pipeC.getPipelineEnd(First), pipeA);
 });
 
-Deno.test("Pipe getHandle throws error on fully-connected pipeline", () => {
+Deno.test("Pipe getPipelineEnd throws error on fully-connected pipeline", () => {
     const [pipeA, pipeB, pipeC] = createPipelineTestObjects();
     const nonpipelinableObject = new Second();
 
     pipeC.setDirectHandle(Second, nonpipelinableObject);
 
     assertThrows(
-        () => {pipeA.getHandle(null, Second)},
+        () => {pipeA.getPipelineEnd(Second)},
         Error,
-        'Cannot get handle for the pipeline. Pipeline is already fully connected'
+        'The Second end of the pipeline is already welded'
     )
 });

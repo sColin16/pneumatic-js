@@ -1,6 +1,6 @@
 // The base class for objects that can use the append methods for the pipes
 class HandledObject {
-    getHandle(senderHandle, ...args) {
+    getHandle(senderHandle) {
         return this;
     }
 }
@@ -41,34 +41,38 @@ class PipeBuilder {
 
 // Responsible for connecting pipes to create a pipeline
 class PipeWelder {
-    static appendToPipeline(pipe, senderHandle, interfaceClass, object) {
-        const pipelineEnd = pipe.getHandle(senderHandle, interfaceClass);
+    static appendToPipeline(pipe, interfaceClass, object) {
+        const pipelineEnd = pipe.getPipelineEnd(interfaceClass);
 
-        if (this.isHandledObject(object)) {
-            this.weldHandledObject(pipelineEnd, senderHandle, interfaceClass, object);
-        
+        if (this.isPipelineableObject(object)) {
+            const targetPipe = object.getPipelineEnd(object.constructor.getOppositeInterface(interfaceClass));
+
+            this.weldPipes(pipelineEnd, interfaceClass, targetPipe);
+
+        } else if (this.isHandledObject(object)) {
+            this.weldHandledObject(pipelineEnd, interfaceClass, object);
+
         } else {
             this.weldObject(pipelineEnd, interfaceClass, object);
         }
     }
 
-    static weldHandledObject(pipelineEnd, senderHandle, interfaceClass, handledObject) {
-        const linkedObject = handledObject.getHandle(senderHandle, interfaceClass);
+    static weldHandledObject(pipelineEnd, interfaceClass, handledObject) {
+        const targetHandle = handledObject.getHandle(pipelineEnd);
 
-        if (this.isPipelineableObject(linkedObject)) {
-            this.weldPipes(pipelineEnd, senderHandle, interfaceClass, linkedObject);
+        if (this.isPipelineableObject(targetHandle)) {
+            this.weldPipes(pipelineEnd, interfaceClass, targetHandle);
+
         } else {
-            this.weldObject(pipelineEnd, interfaceClass, linkedObject);
+            this.weldObject(pipelineEnd, interfaceClass, targetHandle);
         }
     }
 
-    static weldPipes(pipelineEnd, senderHandle, interfaceClass, otherPipe) {
+    static weldPipes(pipelineEnd, interfaceClass, targetPipe) {
         const oppositeInterface = pipelineEnd.constructor.getOppositeInterface(interfaceClass);
 
-        const otherPipelineEnd = otherPipe.getHandle(senderHandle, oppositeInterface);
-
-        this.weldObject(pipelineEnd, interfaceClass, otherPipelineEnd);
-        this.weldObject(otherPipelineEnd, oppositeInterface, pipelineEnd);
+        this.weldObject(pipelineEnd, interfaceClass, targetPipe);
+        this.weldObject(targetPipe, oppositeInterface, pipelineEnd);
     }
 
     static weldObject(pipelineEnd, interfaceClass, object) {
@@ -82,17 +86,15 @@ class PipeWelder {
 
     // Returns true if the object is handled, and implements the appendToPipeline() method
     static isPipelineableObject(object) {
-        return this.isHandledObject(object) && 'appendToPipeline' in object;
+        return 'getPipelineEnd' in object;
     }
 }
 
-class Pipe extends HandledObject {
+class Pipe {
     static builder = PipeBuilder; // Class that dynamically adds methods and other properties
     static welder = PipeWelder;   // Class that connects pipes to form complete pipelines
 
     constructor(firstHandle, secondHandle) {
-        super();
-
         this.constructor.verifyInterfacesDefined();
 
         this.handles = {
@@ -119,15 +121,17 @@ class Pipe extends HandledObject {
         }
     }
 
-    getHandle(senderHandle, interfaceClass) {
+    getPipelineEnd(interfaceClass) {
         let directHandle = this.getDirectHandle(interfaceClass);
 
         if (typeof directHandle === 'undefined') {
             return this;
+
         } else if (this.constructor.welder.isPipelineableObject(directHandle)) {
-            return directHandle.getHandle(senderHandle, interfaceClass);
+            return directHandle.getPipelineEnd(interfaceClass);
+
         } else {
-            throw new Error(`Cannot get handle for the pipeline. Pipeline is already fully connected`);
+            throw new Error(`The ${interfaceClass.name} end of the pipeline is already welded`);
         }
     }
 
@@ -141,8 +145,8 @@ class Pipe extends HandledObject {
         this.handles[interfaceClass.name] = object;
     }
 
-    appendToPipeline() {
-        this.constructor.welder.addToPipeline(this, senderHandle, interfaceClass, object);
+    appendToPipeline(interfaceClass, object) {
+        this.constructor.welder.appendToPipelinee(this, interfaceClass, object);
     }
 
     verifyFlow(senderHandle, interfaceClass) {
