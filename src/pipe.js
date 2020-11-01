@@ -145,8 +145,12 @@ class Pipe {
         this.handles[interfaceClass.name] = object;
     }
 
+    weld(interfaceClass, object) {
+        this.setDirectHandle(interfaceClass, object);
+    }
+
     appendToPipeline(interfaceClass, object) {
-        this.constructor.welder.appendToPipelinee(this, interfaceClass, object);
+        this.constructor.welder.appendToPipeline(this, interfaceClass, object);
     }
 
     verifyFlow(senderHandle, interfaceClass) {
