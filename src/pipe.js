@@ -155,7 +155,7 @@ class Pipe {
 
     verifyFlow(senderHandle, interfaceClass) {
         this.verifyHandlesDefined();
-        this.verifySenderHandle(senderHandle, interfaceClass);
+        //this.verifySenderHandle(senderHandle, interfaceClass);
     }
 
     static verifyInterfacesDefined() {
