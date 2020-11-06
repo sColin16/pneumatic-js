@@ -72,23 +72,6 @@ Deno.test("Pipe verifyHandlesDefined doesn't throw error when interface named de
     assertNoThrow(() => definedHandlesPipe.verifyHandlesDefined());
 });
 
-Deno.test("Pipe verifySenderHandle throws error wtih invalid sender", () => {
-    const pipe = new ValidPipeSubclass('firstObject', 'secondObject');
-
-    assertThrows(
-        () => {pipe.verifySenderHandle('firstObject', First)},
-        Error,
-        "Invalid sender. firstObject cannot send messages through this pipe to the interface "+
-            "First"
-    );
-});
-
-Deno.test("Pipe verifySenderHandle doesn't throw error with valid sender", () => {
-    const pipe = new ValidPipeSubclass('firstObject', 'secondObject');
-
-    assertNoThrow(() => pipe.verifySenderHandle('secondObject', First))
-});
-
 Deno.test("Pipe verifyInterfaceClass throws error with invalid interface name", () => {
     assertThrows(
         () => ValidPipeSubclass.verifyInterfaceClass(OtherClass),

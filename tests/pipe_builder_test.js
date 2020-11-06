@@ -131,28 +131,6 @@ Deno.test("PipeBuilder interfaceMethodFactory function throws error on undefined
     operationCollectionFactory.restore();
 });
 
-Deno.test("PipeBuilder interfaceMethodFactory function throws error on invalid sender", () => {
-    class TestPipe extends ValidPipeSubclass {};
-
-    const operationCollectionFactory = stub(TestCollection, 'operationCollectionFactory');
-
-    const outputFunction = PipeBuilder.interfaceMethodFactory(First, "myMethod",
-        TestCollection);
-
-    TestPipe.prototype.operationCollectionFunction = outputFunction;
-
-    const testPipe = new TestPipe('firstObject', 'secondObject');
-
-    assertThrows (
-        () => testPipe.operationCollectionFunction('invalidObject'),
-        Error,
-        "Invalid sender. invalidObject cannot send messages through this pipe to the interface "+
-            "First"
-    )
-
-    operationCollectionFactory.restore();
-});
-
 Deno.test("PipeBuilder interfaceMethodFactory calls operation collection correctly", () => {
     class TestPipe extends ValidPipeSubclass {};
 

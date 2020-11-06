@@ -112,15 +112,6 @@ class Pipe {
         }
     }
 
-    verifySenderHandle(senderHandle, interfaceClass) {
-        let oppositeInterface = this.constructor.getOppositeInterface(interfaceClass);
-
-        if (senderHandle != this.handles[oppositeInterface.name]) {
-            throw new Error(`Invalid sender. ${senderHandle} cannot send messages through ` +
-                `this pipe to the interface ${interfaceClass.name}`);
-        }
-    }
-
     getPipelineEnd(interfaceClass) {
         let directHandle = this.getDirectHandle(interfaceClass);
 
@@ -155,7 +146,6 @@ class Pipe {
 
     verifyFlow(senderHandle, interfaceClass) {
         this.verifyHandlesDefined();
-        //this.verifySenderHandle(senderHandle, interfaceClass);
     }
 
     static verifyInterfacesDefined() {
